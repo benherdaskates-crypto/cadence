@@ -96,7 +96,7 @@ Only one copy of Cadence runs at a time (two would both grab F8–F10). Opening 
 ## Sharing & updates
 
 ### Send it to a friend
-Send them `Cadence.exe` (about 14 MB). It's one file and needs no installer. Discord's free upload limit is 10 MB, so share a Google Drive, OneDrive or WeTransfer link, or the GitHub release link below.
+Run `python release.py <version>` (or `build.bat`) and send the `.exe` it makes. It's about 9 MB, so it fits under Discord's 10 MB upload limit. It's one file and needs no installer.
 
 When they open it, Cadence offers to **install itself**. It goes into their user folder (`%LOCALAPPDATA%\Programs\Cadence`) with a Start menu entry and an optional desktop shortcut. It needs no admin rights and makes no registry changes. **Settings → Install & updates** also has an Uninstall button.
 
