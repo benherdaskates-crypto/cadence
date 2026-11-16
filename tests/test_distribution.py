@@ -24,7 +24,18 @@ class FakeGitHub(BaseHTTPRequestHandler):
     def log_message(self, *a):
         pass
 
+    latest = None
+
     def do_GET(self):
+        if self.path.startswith("/raw/"):
+            if self.path.endswith("/latest.json"):
+                if not self.latest:
+                    self.send_response(404); self.end_headers(); return
+                body = json.dumps(self.latest).encode()
+                self.send_response(200); self.send_header("Content-Length", str(len(body))); self.end_headers()
+                self.wfile.write(body); return
+            self.send_response(200); self.send_header("Content-Length", str(len(self.payload))); self.end_headers()
+            self.wfile.write(self.payload); return
         if self.path.startswith("/repos/"):
             if not self.release:
                 self.send_response(404); self.end_headers(); return
@@ -43,6 +54,7 @@ def gh(monkeypatch):
     base = f"http://127.0.0.1:{srv.server_port}"
     monkeypatch.setenv("CADENCE_UPDATE_API", base)
     FakeGitHub.payload = EXE_BYTES
+    FakeGitHub.latest = None
     FakeGitHub.release = {
         "tag_name": "v9.1.0", "html_url": "https://github.com/me/cadence/releases/tag/v9.1.0",
         "body": f"## What's new\n- Faster\n\nsha256: {hashlib.sha256(EXE_BYTES).hexdigest()}",
@@ -94,9 +106,9 @@ def test_download_verifies(gh):
 
 def test_download_refuses_foreign_links(monkeypatch):
     monkeypatch.delenv("CADENCE_UPDATE_API", raising=False)
-    with pytest.raises(updater.UpdateError, match="doesn't point"):
+    with pytest.raises(updater.UpdateError, match="doesn.t point"):
         updater.download({"url": "https://evil.example.com/Cadence.exe"}, repo="me/cadence")
-    with pytest.raises(updater.UpdateError, match="doesn't point"):
+    with pytest.raises(updater.UpdateError, match="doesn.t point"):
         updater.download({"url": "https://github.com/someone-else/x/releases/download/v1/a.exe"}, repo="me/cadence")
 
 
@@ -176,3 +188,41 @@ def test_install_removes_old_cadence_free_install(tmp_path, monkeypatch):
     assert not (tmp_path / "Desktop" / "Cadence Free.lnk").exists()
     assert not (tmp_path / "StartMenu" / "Cadence Free.lnk").exists()
     assert (tmp_path / "Desktop" / "Cadence.lnk").exists()
+
+
+
+def test_update_from_latest_json_in_repo(gh):
+    FakeGitHub.latest = {"version": "9.2.0", "file": "Cadence.exe", "size": len(EXE_BYTES),
+                         "sha256": hashlib.sha256(EXE_BYTES).hexdigest(), "notes": "Smoother everything"}
+    info = updater.check(repo="me/cadence", current="1.1.0")
+    assert info["available"] and info["latest"] == "9.2.0" and info["notes"] == "Smoother everything"
+    assert info["url"] == f"{gh}/raw/me/cadence/main/Cadence.exe"
+    assert updater.download(info, repo="me/cadence").read_bytes() == EXE_BYTES
+    assert not updater.check(repo="me/cadence", current="9.2.0")["available"]
+
+
+def test_latest_json_missing_falls_back_to_releases(gh):
+    FakeGitHub.latest = None
+    assert updater.check(repo="me/cadence", current="1.0.0")["latest"] == "9.1.0"
+
+
+def test_latest_json_with_odd_file_name_is_refused(gh):
+    FakeGitHub.latest = {"version": "9.2.0", "file": "../../evil.bat", "size": 10, "sha256": ""}
+    with pytest.raises(updater.UpdateError, match="looks wrong"):
+        updater.check(repo="me/cadence", current="1.0.0")
+
+
+def test_raw_repo_links_are_allowed_only_for_this_repo(monkeypatch):
+    monkeypatch.delenv("CADENCE_UPDATE_API", raising=False)
+    assert updater._allowed_download("https://raw.githubusercontent.com/me/cadence/main/Cadence.exe", "me/cadence")
+    assert not updater._allowed_download("https://raw.githubusercontent.com/other/cadence/main/Cadence.exe", "me/cadence")
+
+
+def test_release_writes_latest_json(tmp_path):
+    import release
+    exe = tmp_path / "Cadence.exe"
+    exe.write_bytes(EXE_BYTES)
+    info = release.write_latest(exe, "1.2.3", "  Faster typing  ")
+    saved = json.loads((tmp_path / "latest.json").read_text(encoding="utf-8"))
+    assert saved == info and saved["version"] == "1.2.3" and saved["notes"] == "Faster typing"
+    assert saved["sha256"] == hashlib.sha256(EXE_BYTES).hexdigest() and saved["size"] == len(EXE_BYTES)

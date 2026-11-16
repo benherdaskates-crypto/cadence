@@ -15,6 +15,7 @@ import subprocess
 import tempfile
 import threading
 import urllib.error
+import urllib.parse
 import urllib.request
 from pathlib import Path
 from typing import Callable
@@ -41,6 +42,13 @@ def is_newer(remote: str, local: str) -> bool:
 
 def _api_base() -> str:
     return os.environ.get("CADENCE_UPDATE_API", API).rstrip("/")
+
+
+def _raw_base() -> str:
+    """Where files committed to the repo are served from."""
+    if os.environ.get("CADENCE_UPDATE_API"):
+        return os.environ["CADENCE_UPDATE_API"].rstrip("/") + "/raw"
+    return "https://raw.githubusercontent.com"
 
 
 # ---------------------------------------------------------------------------
@@ -80,7 +88,7 @@ def _open(url: str, headers: dict, timeout: float):
 
 def _net_open(url: str, headers: dict, timeout: float):
     try:
-        import clr  # noqa: F401  (pythonnet)
+        __import__("clr")          # pythonnet: makes the .NET namespaces importable
         from System import Array, Byte
         from System.Net import SecurityProtocolType, ServicePointManager, WebException, WebRequest
     except Exception:
@@ -143,6 +151,21 @@ def check(repo: str | None = None, current: str | None = None) -> dict:
     current = current or version.VERSION
     if not re.fullmatch(r"[A-Za-z0-9-]+/[A-Za-z0-9._-]+", repo or ""):
         return {"configured": False, "current": current}
+    # 1) The simple way: latest.json + Cadence.exe committed at the top of the repo.
+    try:
+        info = _get_json(f"{_raw_base()}/{repo}/main/latest.json")
+    except UpdateError:
+        info = None
+    if isinstance(info, dict) and info.get("version"):
+        ver, file = str(info["version"]), str(info.get("file") or "Cadence.exe")
+        if not re.fullmatch(r"[A-Za-z0-9._ -]+\.exe", file):
+            raise UpdateError("The update info in the repo looks wrong; not using it.")
+        sha = str(info.get("sha256") or "").lower()
+        return {"configured": True, "current": current, "latest": ver.lstrip("vV"), "available": is_newer(ver, current),
+                "notes": str(info.get("notes") or "")[:1500], "page": f"https://github.com/{repo}",
+                "url": f"{_raw_base()}/{repo}/main/{urllib.parse.quote(file)}", "size": int(info.get("size") or 0),
+                "sha256": sha if re.fullmatch(r"[0-9a-f]{64}", sha) else ""}
+    # 2) Fallback: the latest GitHub Release.
     rel = _get_json(f"{_api_base()}/repos/{repo}/releases/latest")
     tag = rel.get("tag_name") or rel.get("name") or ""
     exe = next((a for a in rel.get("assets", []) if str(a.get("name", "")).lower().endswith(".exe")), None)
@@ -156,8 +179,10 @@ def check(repo: str | None = None, current: str | None = None) -> dict:
 
 def _allowed_download(url: str, repo: str) -> bool:
     if os.environ.get("CADENCE_UPDATE_API"):              # tests use a local fake server
-        return url.startswith(os.environ["CADENCE_UPDATE_API"])
-    return url.lower().startswith(f"https://github.com/{repo.lower()}/releases/download/")
+        return url.startswith(os.environ["CADENCE_UPDATE_API"]) or url.startswith(_raw_base())
+    u, r = url.lower(), repo.lower()
+    return (u.startswith(f"https://github.com/{r}/releases/download/")
+            or u.startswith(f"https://raw.githubusercontent.com/{r}/main/"))
 
 
 def download(info: dict, repo: str | None = None, progress: Callable[[int, int], None] | None = None,
@@ -165,7 +190,7 @@ def download(info: dict, repo: str | None = None, progress: Callable[[int, int],
     repo = (repo if repo is not None else version.UPDATE_REPO).strip()
     url = info.get("url", "")
     if not url or not _allowed_download(url, repo):
-        raise UpdateError("The update link doesn't point at this app's GitHub releases; not downloading it.")
+        raise UpdateError("The update link doesn't point at this app's GitHub repo; not downloading it.")
     dest = Path(tempfile.mkdtemp(prefix="cadence_update_")) / "Cadence.exe"
     h, got, total = hashlib.sha256(), 0, int(info.get("size") or 0)
     try:

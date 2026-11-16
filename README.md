@@ -1,4 +1,19 @@
-# Cadence
+<p align="center"><img src="assets/logo-512.png" width="96" alt="Cadence logo"></p>
+
+<h1 align="center">Cadence</h1>
+
+<p align="center">
+  <a href="https://github.com/benherdaskates-crypto/cadence/raw/main/Cadence.exe"><b>⬇&nbsp;&nbsp;Download Cadence for Windows</b></a>
+  <br><sub>One file, about 9 MB · Windows 10 and 11 · free, no account</sub>
+</p>
+
+## Install in 3 steps
+
+1. **Download** [`Cadence.exe`](https://github.com/benherdaskates-crypto/cadence/raw/main/Cadence.exe) (the link above), or click `Cadence.exe` in the file list and then the download button.
+2. **Open it.** If Windows says *"Windows protected your PC"*, click **More info → Run anyway**. This shows up because the app isn't code-signed.
+3. Click **Install** when Cadence asks. It adds a Start menu entry and a desktop shortcut, needs no admin rights, and updates itself from then on.
+
+---
 
 A free, fully offline Windows app. It doesn't need an API key, an account, or the internet.
 
@@ -96,7 +111,7 @@ Only one copy of Cadence runs at a time (two would both grab F8–F10). Opening 
 ## Sharing & updates
 
 ### Send it to a friend
-Run `python release.py <version>` (or `build.bat`) and send the `.exe` it makes. It's about 9 MB, so it fits under Discord's 10 MB upload limit. It's one file and needs no installer.
+Send them the download link at the top of this page, or drop `Cadence.exe` into Discord (it's about 9 MB, under Discord's 10 MB limit). It's one file and needs no installer.
 
 When they open it, Cadence offers to **install itself**. It goes into their user folder (`%LOCALAPPDATA%\Programs\Cadence`) with a Start menu entry and an optional desktop shortcut. It needs no admin rights and makes no registry changes. **Settings → Install & updates** also has an Uninstall button.
 
@@ -104,21 +119,13 @@ Two warnings they may see, because the exe isn't code-signed (signing costs mone
 - **"Windows protected your PC"** (SmartScreen): click **More info → Run anyway**.
 - **Antivirus:** some antivirus tools flag apps that simulate keystrokes and use global hotkeys, which is what the Writer does. That's a false positive, but they may need to allow it.
 
-### Turn on updates (one-time setup, about 5 minutes)
-Updates come from a GitHub **Releases** page. The repository can be empty; only the releases matter.
-1. Make a free account at github.com, then create a new **public** repository, e.g. `cadence`.
-2. Build a release that knows where to look:
-   ```bash
-   python release.py 1.1.0 --repo yourname/cadence
-   ```
-3. On GitHub, open the repository → **Releases → Draft a new release**. Set the tag to `v1.1.0`, paste the text from `release/v1.1.0-notes.md` (keep the `sha256:` line), attach `release/Cadence-v1.1.0.exe`, and publish.
-4. Share that release's download link. Every copy made from this build now checks for updates.
-
-### Publish an update later
+### Publish an update
 ```bash
-python release.py 1.2.0
+python release.py 1.2.0 --notes "What changed" --publish
 ```
-Then make a new release with tag `v1.2.0` in the same way. Everyone's Cadence offers the update within about a day, or right away with **Settings → Check now**. The app downloads it only from your repo's releases, checks that it's a real Windows program of the right size and matches the `sha256` in the notes, then swaps it in and restarts.
+That runs the tests, builds the app, replaces `Cadence.exe` and `latest.json` at the top of this repo, and pushes. The download link above then serves the new version. Everyone's installed Cadence offers the update within about a day, or right away with **Settings → Check now**.
+
+The app only downloads from this repo. It checks that the file is a real Windows program of the size and SHA-256 listed in `latest.json`, then swaps it in and restarts. (If there's no `latest.json`, it falls back to this repo's GitHub Releases.)
 
 ## Build the .exe
 
