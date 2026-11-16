@@ -1,0 +1,180 @@
+/* Cadence motion system.
+   Only transform / opacity / color animate, so everything stays smooth.
+   prefers-reduced-motion turns it all off (bottom of file). */
+:root {
+  --spring: cubic-bezier(.3, 1.16, .55, 1);     /* barely-there overshoot: feels alive, never bouncy */
+  --out: cubic-bezier(.22, 1, .36, 1);          /* quint-out: quick start, long soft landing */
+}
+
+/* ---------------------------------------------------------------- logo */
+.logo { width: 40px; height: 40px; border-radius: 12px; display: block; margin: 0 0 18px; background: none; border: 0;
+        transition: transform 260ms var(--spring), filter 260ms var(--out); animation: logo-in 600ms var(--out) both; cursor: default; }
+.logo:hover { transform: scale(1.08) rotate(-4deg); filter: drop-shadow(0 0 10px rgba(116,230,155,0.25)); }
+@keyframes logo-in { from { opacity: 0; transform: scale(.7) rotate(-12deg); } to { opacity: 1; transform: none; } }
+.mini-logo { width: 18px; height: 18px; border-radius: 5px; flex: none; transition: transform 300ms var(--spring); }
+.mini:hover .mini-logo { transform: rotate(-8deg) scale(1.08); }
+
+/* ---------------------------------------------------------------- sidebar: one indicator slides between items */
+.sidebar { position: relative; }
+.nav-btn.active::before { display: none; }
+.nav-ind { position: absolute; left: 0; top: 0; width: 3px; height: 20px; border-radius: 0 3px 3px 0; background: var(--accent);
+           transform: translateY(var(--y, 0px)); transition: transform 380ms var(--spring), opacity 200ms; opacity: 0; }
+.nav-ind.ready { opacity: 1; }
+.nav-ind.no-anim { transition: none; }
+.nav-btn svg { transition: transform 240ms var(--spring); }
+.nav-btn:hover svg { transform: scale(1.12); }
+.nav-btn:active svg { transform: scale(.9); }
+.nav-btn .tip { transition: opacity 160ms var(--out), transform 220ms var(--out); }
+.nav-btn.quit:hover svg { transform: scale(1.12) rotate(90deg); }
+
+/* ---------------------------------------------------------------- page entrance: rise in with a short stagger */
+.view.active { animation: none; }
+.view.enter .page-head { animation: rise 420ms var(--out) both; }
+.view.enter .stat { animation: rise 420ms var(--out) both; animation-delay: calc(40ms + var(--i, 0) * 35ms); }
+.view.enter .card, .view.enter .action-bar { animation: rise 480ms var(--out) both; animation-delay: calc(90ms + var(--i, 0) * 45ms); }
+@keyframes rise { from { opacity: 0; transform: translateY(12px) scale(.99); } to { opacity: 1; transform: none; } }
+
+/* ---------------------------------------------------------------- buttons and chips: lift on hover, press on click */
+.pill, .chip { transition: background 180ms var(--out), border-color 180ms var(--out), color 180ms var(--out),
+               transform 240ms var(--spring), opacity 180ms, box-shadow 240ms var(--out); }
+.pill:hover:not(:disabled), .chip:hover:not(.static) { transform: translateY(-1px); }
+.pill:active:not(:disabled), .chip:active:not(.static) { transform: translateY(0) scale(.95); transition-duration: 90ms; }
+.pill.primary:hover:not(:disabled) { box-shadow: 0 0 0 4px rgba(116,230,155,0.14); }
+.pill svg, .chip svg { transition: transform 280ms var(--spring); }
+.pill:hover:not(:disabled) svg, .chip:hover svg { transform: scale(1.14); }
+#h-send:hover svg { transform: translateX(4px); }
+#h-again:hover svg, #h-refresh:hover svg, #s-check:hover svg { transform: rotate(-180deg); transition-duration: 520ms; }
+#btn-start:hover:not(:disabled) svg { transform: translateX(2px) scale(1.12); }
+#btn-stop:hover:not(:disabled) svg { transform: rotate(90deg); }
+.chip.on { animation: pop 340ms var(--spring); }
+@keyframes pop { 0% { transform: scale(.92); } 100% { transform: scale(1); } }
+kbd { transition: transform 200ms var(--spring); }
+.pill:hover kbd { transform: translateY(-1px); }
+
+/* ---------------------------------------------------------------- cards and stats */
+.card { transition: border-color 240ms var(--out), background 240ms var(--out), transform 280ms var(--out); }
+.card:hover { border-color: rgba(255,255,255,0.09); }
+.stat { transition: border-color 200ms var(--out), transform 260ms var(--spring); }
+.stat:hover { border-color: var(--border-2); transform: translateY(-2px); }
+.stat .ic { transition: transform 320ms var(--spring), background 200ms; }
+.stat:hover .ic { transform: rotate(-10deg) scale(1.1); }
+.bump { animation: bump 420ms var(--out); display: inline-block; }
+@keyframes bump { 0% { opacity: .3; transform: translateY(5px); } 100% { opacity: 1; transform: none; } }
+.preset-card:not(.add):hover { transform: translateY(-3px); }
+.preset-card.add { transition: background 200ms var(--out), color 200ms, transform 280ms var(--out), border-color 200ms; }
+.preset-card.add:hover { transform: translateY(-3px); border-color: rgba(116,230,155,0.35); }
+.preset-card.add svg { transition: transform 320ms var(--spring); }
+.preset-card.add:hover svg { transform: rotate(90deg) scale(1.15); }
+.row { transition: background 200ms var(--out); }
+.meta div { transition: transform 260ms var(--spring), background 200ms; }
+.meta div:hover { transform: translateY(-2px); background: var(--card-3); }
+
+/* ---------------------------------------------------------------- segmented controls: a thumb slides to the choice */
+.seg { position: relative; isolation: isolate; }
+.seg-thumb { position: absolute; top: 3px; bottom: 3px; left: 0; width: 0; border-radius: 999px; z-index: -1;
+             background: var(--card-3); box-shadow: inset 0 0 0 1px var(--border-2);
+             transition: transform 360ms var(--spring), width 360ms var(--spring); }
+.seg.no-anim .seg-thumb { transition: none; }
+.seg button.on { background: transparent; box-shadow: none; }
+.seg button { transition: color 220ms var(--out); }
+.seg button:active { transform: scale(.97); }
+
+/* ---------------------------------------------------------------- toggles and sliders */
+.switch .knob { transition: transform 320ms var(--spring), width 200ms var(--out), background 220ms var(--out); }
+.switch .track { transition: background 240ms var(--out), box-shadow 240ms var(--out); }
+.switch:active .knob { width: 20px; }
+.switch input:checked:active ~ .knob { transform: translateX(12px); }
+.switch:hover .track { box-shadow: inset 0 0 0 1px rgba(255,255,255,0.18); }
+input[type=range]::-webkit-slider-thumb { transition: transform 240ms var(--spring), box-shadow 240ms; }
+input[type=range]:active::-webkit-slider-thumb { transform: scale(1.3); box-shadow: 0 0 0 6px rgba(116,230,155,0.16); }
+
+/* ---------------------------------------------------------------- inputs */
+textarea.editor, .input { transition: border-color 220ms var(--out), background 220ms var(--out); }
+textarea.editor:hover:not(:focus) { border-color: rgba(255,255,255,0.09); }
+.editor.flash { animation: flash 1s var(--out); }
+@keyframes flash { 0% { border-color: rgba(116,230,155,0.65); background: rgba(116,230,155,0.07); } 100% { border-color: var(--border); background: var(--card-2); } }
+
+/* ---------------------------------------------------------------- gauge and fuel bar */
+.fuel i { transition: background 320ms var(--out), transform 320ms var(--spring); }
+.fuel i.on { transform: scaleY(1.08); }
+.gauge .target { transition: transform 560ms var(--spring); }
+.gauge svg { transition: transform 420ms var(--out); }
+.gauge-card:hover .gauge svg { transform: scale(1.02); }
+.gauge .big { transition: transform 300ms var(--spring); }
+.gauge-card:hover .gauge .big { transform: scale(1.04); }
+
+/* ---------------------------------------------------------------- popovers, modals, toast */
+.select-pop { transform-origin: top left; animation: drop 220ms var(--out); }
+@keyframes drop { from { opacity: 0; transform: translateY(-4px) scale(.97); } to { opacity: 1; transform: none; } }
+.select-opt { transition: background 150ms var(--out), transform 220ms var(--out), color 150ms; }
+.select-opt:hover { transform: translateX(3px); }
+.select-btn svg { transition: transform 260ms var(--spring); }
+.select.open .select-btn svg { transform: rotate(180deg); }
+.modal { animation: modal-in 320ms var(--spring); }
+@keyframes modal-in { from { opacity: 0; transform: translateY(10px) scale(.95); } to { opacity: 1; transform: none; } }
+.modal-wrap.closing .modal { transform: scale(.97); opacity: 0; transition: transform 150ms var(--out), opacity 150ms; }
+.toast { transition: opacity 220ms var(--out), transform 420ms var(--spring); }
+.cmd { transition: border-color 200ms; }
+.cmd:hover { border-color: var(--border-2); }
+
+/* ---------------------------------------------------------------- humanizer feedback */
+.h-progress .bar { position: relative; }
+.h-progress .bar::after { content: ""; position: absolute; inset: 0; transform: translateX(-100%);
+                          background: linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent);
+                          animation: shimmer 1.2s linear infinite; }
+@keyframes shimmer { to { transform: translateX(100%); } }
+.spin { animation: spin 900ms linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.diff-view .d-ins, .diff-view .d-del { animation: fadein 420ms var(--out) both; }
+.status-chip { transition: border-color 200ms, color 200ms; }
+.status-chip .dot { transition: background 320ms var(--out), transform 320ms var(--spring); }
+.status-chip:hover .dot { transform: scale(1.45); }
+.h-model { transition: opacity 260ms var(--out), transform 260ms var(--out); }
+.h-model.hidden-soft { transform: translateX(8px); }
+.h-opt { transition: opacity 260ms var(--out); }
+
+/* ---------------------------------------------------------------- mini panel */
+.mini-btn { transition: background 160ms var(--out), color 160ms var(--out), transform 240ms var(--spring); }
+.mini-btn:hover { transform: scale(1.1); }
+.mini-btn:active { transform: scale(.9); }
+.mini-btn svg { transition: transform 280ms var(--spring); }
+.mini-btn.close:hover svg { transform: rotate(90deg); }
+.mini-full, .mini-pill { animation: fadein 240ms var(--out); }
+.mg-num { transition: transform 300ms var(--spring); }
+.mini-gauge:hover .mg-num { transform: scale(1.08); }
+
+/* ---------------------------------------------------------------- smoothness pass
+   - things that move get their own compositor layer (no repaint per frame)
+   - text in moving buttons stays crisp (no subpixel shimmer)
+   - hover pops are small and every duration sits in one 220-380ms band */
+.nav-ind, .seg-thumb, .toast, .mini-prog i, .h-progress .bar i, .se-meter i { will-change: transform; }
+.pill, .chip, .stat, .preset-card, .style-item, .mini-btn { backface-visibility: hidden; transform: translateZ(0); }
+.pill:hover:not(:disabled) svg, .chip:hover svg { transform: scale(1.08); }
+.nav-btn:hover svg { transform: scale(1.08); }
+.stat:hover .ic { transform: rotate(-6deg) scale(1.06); }
+.pill, .chip { transition-duration: 220ms, 220ms, 220ms, 300ms, 220ms, 300ms; }
+.pill:hover:not(:disabled), .chip:hover:not(.static) { transform: translateY(-1px) translateZ(0); }
+.pill:active:not(:disabled), .chip:active:not(.static) { transform: scale(.97) translateZ(0); transition-duration: 120ms; }
+.stat:hover { transform: translateY(-1px) translateZ(0); }
+.preset-card:not(.add):hover, .preset-card.add:hover, .style-item:hover { transform: translateY(-2px) translateZ(0); }
+.view.enter .page-head { animation-duration: 380ms; }
+.view.enter .stat { animation-duration: 380ms; animation-delay: calc(30ms + var(--i, 0) * 28ms); }
+.view.enter .card, .view.enter .action-bar { animation-duration: 440ms; animation-delay: calc(60ms + var(--i, 0) * 34ms); }
+@keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.seg-thumb { transition: transform 380ms var(--out), width 380ms var(--out); }
+.nav-ind { transition: transform 420ms var(--out), opacity 200ms; }
+.switch .knob { transition: transform 300ms var(--out), width 200ms var(--out), background 220ms var(--out); }
+.fuel i { transition: background 360ms var(--out), transform 360ms var(--out); }
+.gauge .value { transition: stroke-dasharray 420ms var(--out), opacity 240ms; }
+.mg-val { transition: stroke-dasharray 420ms var(--out), opacity 240ms; }
+.mini-prog i, .h-progress .bar i { transition: transform 420ms var(--out); }
+.toast { transition: opacity 240ms var(--out), transform 380ms var(--out); }
+.modal { animation: modal-in 300ms var(--out); }
+.chip.on { animation: pop 300ms var(--out); }
+@keyframes pop { 0% { transform: scale(.96); } 100% { transform: scale(1); } }
+.bump { animation: bump 360ms var(--out); }
+@keyframes bump { 0% { opacity: .4; transform: translateY(3px); } 100% { opacity: 1; transform: none; } }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}

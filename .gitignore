@@ -1,0 +1,12 @@
+# build output (the .exe is published on GitHub Releases, not committed)
+dist/
+dist_new/
+build/
+release/
+*.spec
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/

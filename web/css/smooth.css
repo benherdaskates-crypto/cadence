@@ -1,0 +1,91 @@
+/* Smooth motion pass: nothing changes size on hover. Elements glow, fade and glide
+   instead. Loaded last so it overrides earlier hover transforms. */
+:root { --glide: cubic-bezier(.25, .8, .25, 1); }
+
+/* ---------------------------------------------------------------- no size/position jumps on hover */
+.pill:hover:not(:disabled), .chip:hover:not(.static), .stat:hover, .preset-card:not(.add):hover,
+.preset-card.add:hover, .style-item:hover, .hist-item:hover, .meta div:hover, .mini-btn:hover,
+.pill:active:not(:disabled), .chip:active:not(.static), .mini-btn:active { transform: none; }
+.pill:hover:not(:disabled) svg, .chip:hover svg, .nav-btn:hover svg, .stat:hover .ic, .mini-btn:hover svg,
+.gauge-card:hover .gauge svg, .gauge-card:hover .gauge .big, .mini-gauge:hover .mg-num, .logo:hover,
+.preset-card.add:hover svg, .mini:hover .mini-logo, .status-chip:hover .dot { transform: none; }
+.logo:hover { filter: drop-shadow(0 0 12px rgba(116,230,155,0.28)); }
+
+/* ---------------------------------------------------------------- cursor spotlight
+   A soft light follows the pointer across cards and buttons (positions set in common.js). */
+.spot { position: relative; isolation: isolate; }
+.spot::after {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: 0;
+  background: radial-gradient(260px circle at var(--mx, 50%) var(--my, 50%), rgba(255,255,255,0.055), transparent 70%);
+  opacity: 0; transition: opacity 420ms var(--glide);
+}
+.spot:hover::after { opacity: 1; }
+.spot.edge { --edge: rgba(116,230,155,0.0); }
+.card.spot::before {                       /* a faint rim that brightens near the pointer */
+  content: ""; position: absolute; inset: -1px; border-radius: inherit; pointer-events: none; z-index: 0; padding: 1px;
+  background: radial-gradient(220px circle at var(--mx, 50%) var(--my, 50%), rgba(116,230,155,0.35), transparent 70%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor; mask-composite: exclude;
+  opacity: 0; transition: opacity 480ms var(--glide);
+}
+.card.spot:hover::before { opacity: 1; }
+.card > *, .pill > *, .chip > * { position: relative; z-index: 1; }
+
+/* ---------------------------------------------------------------- buttons: colour and glow, no size change */
+.pill, .chip, .mini-btn, .nav-btn, .seg button, .select-opt, .sec-toggle, .link-btn {
+  transition: background-color 280ms var(--glide), border-color 280ms var(--glide), color 280ms var(--glide),
+              box-shadow 360ms var(--glide), opacity 240ms var(--glide) !important;
+}
+.pill:hover:not(:disabled) { background: #1c1c20; border-color: rgba(255,255,255,0.16); }
+.pill.primary { background-image: linear-gradient(110deg, transparent 30%, rgba(255,255,255,0.28) 50%, transparent 70%);
+                background-size: 250% 100%; background-position: 150% 0; background-repeat: no-repeat;
+                transition: background-position 900ms var(--glide), box-shadow 360ms var(--glide), background-color 280ms var(--glide) !important; }
+.pill.primary:hover:not(:disabled) { background-position: -50% 0; box-shadow: 0 0 0 4px rgba(116,230,155,0.13), 0 6px 24px -10px rgba(116,230,155,0.55); }
+.pill:active:not(:disabled), .chip:active:not(.static) { filter: brightness(.9); }
+.nav-btn:hover { background: rgba(255,255,255,0.045); }
+.pill svg, .chip svg, .nav-btn svg, .mini-btn svg { transition: color 280ms var(--glide), opacity 280ms var(--glide) !important; }
+#h-again:hover svg, #h-refresh:hover svg, #s-check:hover svg, #d-check:hover svg {
+  transform: rotate(-180deg); transition: transform 700ms var(--glide) !important;
+}
+
+/* ---------------------------------------------------------------- page cross-fade */
+.main { position: relative; }
+.view.leaving { display: flex !important; position: absolute; inset: 0; pointer-events: none; z-index: 0;
+                animation: view-out 200ms var(--glide) forwards; }
+.view.active { position: relative; z-index: 1; }
+.view.enter { animation: view-in 420ms var(--glide) both; }
+@keyframes view-out { to { opacity: 0; transform: translateY(-6px); filter: blur(2px); } }
+@keyframes view-in { from { opacity: 0; transform: translateY(8px); filter: blur(3px); } to { opacity: 1; transform: none; filter: none; } }
+.view.enter .page-head, .view.enter .stat, .view.enter .card, .view.enter .action-bar {
+  animation-name: settle; animation-timing-function: var(--glide);
+}
+@keyframes settle { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+/* ---------------------------------------------------------------- dialogs and toasts */
+.modal-wrap { backdrop-filter: blur(0px); animation: veil-in 320ms var(--glide) forwards; background: rgba(5,5,6,0); }
+@keyframes veil-in { to { backdrop-filter: blur(6px); background: rgba(5,5,6,0.55); } }
+.modal-wrap.closing { animation: veil-out 220ms var(--glide) forwards; opacity: 1; transition: none; }
+@keyframes veil-out { from { backdrop-filter: blur(6px); background: rgba(5,5,6,0.55); } to { backdrop-filter: blur(0); background: rgba(5,5,6,0); } }
+.modal { animation: dialog-in 420ms var(--glide) both !important; }
+@keyframes dialog-in { from { opacity: 0; transform: translateY(14px); filter: blur(4px); } to { opacity: 1; transform: none; filter: none; } }
+.modal-wrap.closing .modal { animation: dialog-out 200ms var(--glide) forwards !important; }
+@keyframes dialog-out { to { opacity: 0; transform: translateY(8px); filter: blur(3px); } }
+.toast { transition: opacity 360ms var(--glide), transform 520ms var(--glide) !important; }
+
+/* ---------------------------------------------------------------- live readouts glide (values tweened in JS) */
+.gauge .value, .mg-val, .mini-full .mg-val { transition: opacity 300ms var(--glide) !important; }
+.fuel i { transition: background-color 520ms var(--glide) !important; transform: none !important; }
+.mini-prog i, .pv-bar i { transition: none !important; }   /* driven every frame in JS */
+.bump { animation: fade-swap 380ms var(--glide); }
+@keyframes fade-swap { from { opacity: .25; filter: blur(1.5px); } to { opacity: 1; filter: none; } }
+
+/* ---------------------------------------------------------------- misc smoothness */
+.col-right, .h-scroll, .page-scroll, .style-list, .hist-list, .pv-doc { scroll-behavior: smooth; }
+textarea.editor:focus, .input:focus { box-shadow: 0 0 0 4px rgba(116,230,155,0.08); }
+textarea.editor, .input { transition: border-color 360ms var(--glide), box-shadow 420ms var(--glide), background-color 360ms var(--glide) !important; }
+.seg-thumb { transition: transform 460ms var(--glide), width 460ms var(--glide) !important; }
+.nav-ind { transition: transform 520ms var(--glide), opacity 240ms !important; }
+.set-body { transition: grid-template-rows 420ms var(--glide), opacity 320ms var(--glide) !important; }
+.sec-right .chev { transition: transform 420ms var(--glide) !important; }
+.switch .knob { transition: transform 360ms var(--glide), background-color 280ms var(--glide) !important; }
+.switch .track { transition: background-color 320ms var(--glide), box-shadow 320ms var(--glide) !important; }

@@ -1,0 +1,5 @@
+pywebview>=6.0
+pynput>=1.7
+# build / dev
+pyinstaller>=6.0
+pytest>=8.0

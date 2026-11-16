@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Cadence mini</title>
+<link rel="icon" href="img/logo.png">
+<link rel="stylesheet" href="css/app.css">
+<link rel="stylesheet" href="css/motion.css">
+<link rel="stylesheet" href="css/ui.css">
+<link rel="stylesheet" href="css/smooth.css">
+<script src="js/icons.js"></script>
+</head>
+<body class="mini-window">
+<div id="mini-root"></div>
+<script src="js/mini.js"></script>
+<script>
+(() => {
+  const api = () => (window.pywebview && window.pywebview.api) || null;
+  let state = "idle";
+  const panel = MiniPanel.mount(document.getElementById("mini-root"), {
+    toggle: () => { const a = api(); if (!a) return; state === "paused" ? a.resume() : a.pause(); },
+    stop: () => api() && api().stop(),
+    expand: () => api() && api().leave_mini(),
+    quit: () => api() && api().quit(),
+    collapse: () => {},
+  });
+  window.cadence = {
+    status(st) { state = st.state; panel.update(st); },
+    restore() {},
+    uiScale(s) { document.documentElement.style.zoom = s; document.documentElement.style.setProperty("--zoom", s); requestAnimationFrame(fit); },
+    uiMotion(m) { document.documentElement.classList.toggle("no-motion", !m); },
+  };
+  // Keep the native window exactly the size and shape of the panel (full panel or pill).
+  const fit = () => {
+    const r = panel.root.getBoundingClientRect();
+    const a = api();
+    if (!a || r.width < 60 || r.height < 30) return;
+    const collapsed = panel.root.classList.contains("collapsed");
+    // Report device pixels: Windows text scaling can make CSS px != the window's DPI scale.
+    const k = window.devicePixelRatio || 1;
+    a.mini_resize(Math.ceil(r.width * k), Math.ceil(r.height * k), (collapsed ? r.height / 2 : 20) * k);
+  };
+  new ResizeObserver(fit).observe(panel.root);
+  window.addEventListener("pywebviewready", async () => {
+    const ui = await api().get_ui();
+    window.cadence.uiScale(ui.scale); window.cadence.uiMotion(ui.motion);
+  });
+  window.cadence.shown = () => {
+    fit();
+    panel.root.classList.add("replay"); void panel.root.offsetWidth; panel.root.classList.remove("replay");
+  };
+})();
+</script>
+</body>
+</html>

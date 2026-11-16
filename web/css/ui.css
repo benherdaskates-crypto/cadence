@@ -1,0 +1,39 @@
+/* Appearance options + fold-out settings sections */
+
+/* hidden until the saved size is applied, then a soft fade in */
+html.booting body { opacity: 0; }
+body { transition: opacity 280ms cubic-bezier(.22, 1, .36, 1); }
+
+/* animations off */
+html.no-motion *, html.no-motion *::before, html.no-motion *::after {
+  animation: none !important; transition: none !important;
+}
+
+/* stat pills off */
+html.hide-stats .stats { display: none; }
+html.hide-stats .writer-grid, html.hide-stats .h-scroll, html.hide-stats .style-grid { margin-top: 16px; }
+
+/* ---------------------------------------------------------------- fold-out sections */
+.set-card.fold { padding: 0; }
+.sec-toggle { width: 100%; background: none; border: 0; color: inherit; font: inherit; cursor: pointer; text-align: left;
+              padding: 16px 18px; margin: 0; border-radius: var(--radius-card); transition: background 200ms var(--out); }
+.sec-toggle:hover { background: rgba(255,255,255,0.02); }
+.sec-toggle:focus-visible { outline-offset: -2px; }
+.sec-right { display: inline-flex; align-items: center; gap: 10px; color: var(--muted); }
+.sec-right .chev { transition: transform 320ms var(--out); }
+.set-card.collapsed .sec-right .chev { transform: rotate(-90deg); }
+.set-body { display: grid; grid-template-rows: 1fr; transition: grid-template-rows 340ms var(--out), opacity 260ms var(--out); }
+.set-card.collapsed .set-body { grid-template-rows: 0fr; opacity: 0; }
+.set-inner { overflow: hidden; min-height: 0; padding: 0 18px 8px; }
+.set-card.collapsed .set-inner { padding-bottom: 0; }
+.set-inner > .row:first-child { border-top: 1px solid var(--border); }
+.adv-label { margin: 8px 4px -4px; }
+
+/* a little calmer and cleaner overall */
+.page-head .sub { font-size: 13px; }
+.card-title h3 { font-size: 14px; }
+.row { padding: 11px 0; }
+.stat { height: 38px; }
+
+/* CSS zoom shrinks the layout box too: stretch full-height pieces back to the real window */
+.app { height: calc(100vh / var(--zoom, 1)); }

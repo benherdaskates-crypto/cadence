@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="en" class="booting">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cadence</title>
+<link rel="icon" href="img/logo.png">
+<link rel="stylesheet" href="css/app.css">
+<link rel="stylesheet" href="css/motion.css">
+<link rel="stylesheet" href="css/style-page.css">
+<link rel="stylesheet" href="css/extras.css">
+<link rel="stylesheet" href="css/ui.css">
+<link rel="stylesheet" href="css/smooth.css">
+<script src="js/icons.js"></script>
+</head>
+<body>
+<div class="app">
+  <nav class="sidebar" aria-label="Main">
+    <img class="logo" src="img/logo.png" alt="Cadence" width="40" height="40" draggable="false">
+    <span class="nav-ind" aria-hidden="true"></span>
+    <button class="nav-btn" data-view="humanizer" aria-label="Humanizer"><span data-icon="wand-sparkles" data-cls="lg"></span><span class="tip">Humanizer</span></button>
+    <button class="nav-btn active" data-view="writer" aria-label="Writer"><span data-icon="keyboard" data-cls="lg"></span><span class="tip">Writer</span></button>
+    <button class="nav-btn" data-view="style" aria-label="My style"><span data-icon="fingerprint" data-cls="lg"></span><span class="tip">My style</span></button>
+    <button class="nav-btn" data-view="presets" aria-label="Presets"><span data-icon="sliders-horizontal" data-cls="lg"></span><span class="tip">Presets</span></button>
+    <div class="spacer"></div>
+    <button class="nav-btn" data-view="settings" aria-label="Settings"><span data-icon="settings" data-cls="lg"></span><span class="tip">Settings</span></button>
+    <button class="nav-btn quit" id="btn-quit" aria-label="Quit Cadence"><span data-icon="power" data-cls="lg"></span><span class="tip">Quit Cadence</span></button>
+  </nav>
+
+  <main class="main">
+    <!-- ============================================================ WRITER -->
+    <section class="view active" id="view-writer">
+      <header class="page-head">
+        <div>
+          <h1>Writer</h1>
+          <p class="sub">Types into the focused window, one keystroke at a time.</p>
+        </div>
+        <div class="head-actions">
+          <span class="status-chip" id="status-chip"><i class="dot"></i><span id="status-text">Ready</span></span>
+          <button class="pill" id="btn-mini"><span data-icon="picture-in-picture-2" data-cls="sm"></span>Mini mode</button>
+        </div>
+      </header>
+
+      <div class="stats">
+        <div class="stat"><span class="ic"><span data-icon="type" data-cls="sm"></span></span><span class="lbl">Words</span><span class="val" id="st-words">0</span></div>
+        <div class="stat"><span class="ic"><span data-icon="clock" data-cls="sm"></span></span><span class="lbl">Est. time</span><span class="val" id="st-time">–</span></div>
+        <div class="stat"><span class="ic"><span data-icon="gauge" data-cls="sm"></span></span><span class="lbl">WPM</span><span class="val" id="st-wpm">55</span></div>
+        <div class="stat"><span class="ic"><span data-icon="crosshair" data-cls="sm"></span></span><span class="lbl">Typo rate</span><span class="val" id="st-typo">3.0%</span></div>
+        <div class="stat accent"><span class="ic"><span data-icon="activity" data-cls="sm"></span></span><span class="lbl">Progress</span><span class="val" id="st-progress">0%</span></div>
+      </div>
+
+      <div class="writer-grid">
+        <div class="col-left">
+          <div class="row-cards">
+            <div class="card gauge-card">
+              <div class="card-title"><span class="eyebrow">Live speed</span><span class="hint" id="gauge-hint">idle</span></div>
+              <div class="gauge">
+                <svg viewBox="0 0 252 252" id="gauge-svg" aria-hidden="true">
+                  <g id="gauge-ticks"></g>
+                  <circle class="track" cx="126" cy="126" r="100" fill="none" stroke-width="10" stroke-linecap="round" id="gauge-track"/>
+                  <circle class="value" cx="126" cy="126" r="100" fill="none" stroke-width="10" stroke-linecap="round" id="gauge-value"/>
+                  <g id="gauge-target"><path class="target" d="M126 14 l-5 -8 h10 z"/></g>
+                </svg>
+                <div class="readout" aria-live="polite">
+                  <div class="big" id="gauge-num">0</div>
+                  <div class="unit">WPM</div>
+                </div>
+              </div>
+              <div class="gauge-foot">
+                <span class="gchip">target <b id="gauge-target-num">55</b></span>
+                <span class="gchip">avg <b id="gauge-avg">–</b></span>
+              </div>
+            </div>
+
+            <div class="card progress-card">
+              <div class="card-title"><span class="eyebrow">Est. time to finish</span><span class="hint" id="eta-clock"></span></div>
+              <div class="eta"><span class="time" id="eta-time">–</span><span class="of" id="eta-of"></span></div>
+              <div class="fuel" id="fuel" aria-hidden="true"></div>
+              <div class="fuel-scale"><span>0%</span><span>50%</span><span>100%</span></div>
+              <div class="meta">
+                <div><div class="k">Characters</div><div class="v" id="m-chars">0 / 0</div></div>
+                <div><div class="k">Mistakes</div><div class="v" id="m-mistakes">–</div></div>
+                <div><div class="k">Revisions</div><div class="v" id="m-revisions">–</div></div>
+              </div>
+              <div class="controls">
+                <button class="pill primary lg" id="btn-start"><span data-icon="play" data-cls="sm"></span><span id="start-label">Start</span><kbd>F8</kbd></button>
+                <button class="pill lg" id="btn-pause" disabled><span data-icon="pause" data-cls="sm"></span>Pause</button>
+                <button class="pill lg" id="btn-stop" disabled><span data-icon="square" data-cls="sm"></span>Stop</button>
+              </div>
+              <div class="run-msg" id="run-msg"></div>
+            </div>
+          </div>
+
+          <div class="card text-card">
+            <div class="card-title">
+              <h3>Text to type</h3>
+              <div class="actions">
+                <button class="chip" id="btn-preview" title="Watch how it will be typed (Ctrl+P)"><span data-icon="eye" data-cls="sm"></span>Preview</button>
+                <button class="chip" id="btn-open" title="Open a .txt, .md or .docx file (Ctrl+O)"><span data-icon="folder-open" data-cls="sm"></span>Open</button>
+                <button class="chip" id="btn-paste"><span data-icon="clipboard-paste" data-cls="sm"></span>Paste</button>
+                <button class="chip" id="btn-clear"><span data-icon="eraser" data-cls="sm"></span>Clear</button>
+              </div>
+            </div>
+            <textarea class="editor" id="writer-text" spellcheck="false" placeholder="Paste text here, or send it over from the Humanizer."></textarea>
+            <div class="text-foot">
+              <span id="writer-counts" class="num">0 words · 0 characters</span>
+              <span class="keys"><span><kbd>F8</kbd> start / resume</span><span><kbd>F9</kbd> pause</span><span><kbd>F10</kbd> stop</span></span>
+            </div>
+          </div>
+        </div>
+
+        <aside class="col-right" id="writer-settings" aria-label="Typing settings"></aside>
+      </div>
+    </section>
+
+    <!-- ============================================================ HUMANIZER -->
+    <section class="view" id="view-humanizer">
+      <header class="page-head">
+        <div>
+          <h1>Humanizer</h1>
+          <p class="sub">Rewrite stiff, machine-sounding text so it reads like a person wrote it. Free and offline.</p>
+        </div>
+        <div class="head-actions">
+          <button class="pill" id="h-history" title="Earlier rewrites (Ctrl+H)"><span data-icon="history" data-cls="sm"></span>History</button>
+          <span class="status-chip" id="h-engine-chip"><i class="dot"></i><span id="h-engine-text">Checking local AI…</span></span>
+          <button class="pill" id="h-install" hidden><span data-icon="circle-help" data-cls="sm"></span>How to install</button>
+        </div>
+      </header>
+
+      <div class="stats">
+        <div class="stat"><span class="ic"><span data-icon="file-text" data-cls="sm"></span></span><span class="lbl">Words in</span><span class="val" id="hs-in">0</span></div>
+        <div class="stat"><span class="ic"><span data-icon="pen-line" data-cls="sm"></span></span><span class="lbl">Words out</span><span class="val" id="hs-out">0</span></div>
+        <div class="stat"><span class="ic"><span data-icon="git-compare" data-cls="sm"></span></span><span class="lbl">Changed</span><span class="val" id="hs-changed">–</span></div>
+        <div class="stat"><span class="ic"><span data-icon="cpu" data-cls="sm"></span></span><span class="lbl">Engine</span><span class="val" id="hs-engine">–</span></div>
+        <div class="stat accent"><span class="ic"><span data-icon="timer" data-cls="sm"></span></span><span class="lbl">Time</span><span class="val" id="hs-time">–</span></div>
+      </div>
+
+      <div class="h-scroll">
+        <div class="card h-options">
+          <div class="h-engine-row">
+            <div class="seg inline" role="radiogroup" id="h-engine" data-k="engine">
+              <button type="button" role="radio" data-v="ollama"><span data-icon="brain-circuit" data-cls="sm"></span>Local AI (Ollama)</button>
+              <button type="button" role="radio" data-v="rules"><span data-icon="zap" data-cls="sm"></span>Rule-based (instant)</button>
+            </div>
+            <div class="h-model" id="h-model-wrap">
+              <span class="muted">Model</span>
+              <div id="h-model"></div>
+              <button class="pill icon" id="h-refresh" aria-label="Check for local AI again" title="Check again"><span data-icon="refresh-cw" data-cls="sm"></span></button>
+            </div>
+          </div>
+          <div class="h-opt-grid">
+            <div class="h-opt"><div class="row-label">Tone</div><div id="h-tone-host"></div></div>
+            <div class="h-opt" id="h-level-opt"><div class="row-label">Reading level <span class="opt-note" data-rules-note>Local AI only</span></div><div id="h-level-host"></div></div>
+            <div class="h-opt"><div class="row-head"><div class="row-label">Strength</div><div class="row-val" id="h-strength-val"></div></div>
+              <input type="range" id="h-strength" min="0" max="2" step="1" aria-label="Rewrite strength">
+              <div class="scale-labels"><span>Light touch</span><span>Moderate</span><span>Heavy rewrite</span></div></div>
+            <div class="h-opt" id="h-style-opt"><div class="row-head"><div class="row-label">Your style</div>
+                <button class="link-btn" id="h-style-manage">Manage</button></div>
+              <div id="h-style" class="wide-select"></div></div>
+          </div>
+        </div>
+
+        <div class="h-editors">
+          <div class="card text-card">
+            <div class="card-title"><h3>Original</h3>
+              <div class="actions">
+                <button class="chip" id="h-open" title="Open a .txt, .md or .docx file (Ctrl+O)"><span data-icon="folder-open" data-cls="sm"></span>Open</button>
+                <button class="chip" id="h-paste"><span data-icon="clipboard-paste" data-cls="sm"></span>Paste</button>
+                <button class="chip" id="h-clear"><span data-icon="eraser" data-cls="sm"></span>Clear</button>
+              </div></div>
+            <textarea class="editor" id="h-in" spellcheck="false" placeholder="Paste the text you want to sound more natural."></textarea>
+            <div class="text-foot"><span class="num" id="h-in-count">0 words · 0 characters</span><span class="read" id="h-in-read"></span></div>
+          </div>
+          <div class="card text-card">
+            <div class="card-title"><h3>Humanized</h3>
+              <div class="actions">
+                <button class="chip" id="h-save" title="Save as .txt (Ctrl+S)"><span data-icon="download" data-cls="sm"></span>Save</button>
+                <label class="toggle-inline"><span>Show changes</span>
+                  <span class="switch"><input type="checkbox" id="h-diff-toggle" aria-label="Show changes"><span class="track"></span><span class="knob"></span></span></label>
+              </div></div>
+            <div class="out-wrap">
+              <textarea class="editor" id="h-out" spellcheck="false" placeholder="The rewrite appears here. You can edit it before sending it to the Writer."></textarea>
+              <div class="editor diff-view" id="h-diff" hidden aria-label="Changes between original and rewrite"></div>
+            </div>
+            <div class="text-foot"><span class="num" id="h-out-count">0 words · 0 characters</span><span class="read" id="h-out-read"></span>
+              <span class="h-progress" id="h-progress" hidden><span class="bar"><i></i></span><span id="h-progress-text"></span></span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="action-bar">
+        <button class="pill primary lg" id="h-go" title="Ctrl+Enter"><span data-icon="wand-sparkles" data-cls="sm"></span><span id="h-go-label">Humanize</span></button>
+        <button class="pill lg" id="h-again"><span data-icon="rotate-ccw" data-cls="sm"></span>Re-humanize</button>
+        <button class="pill lg" id="h-copy"><span data-icon="copy" data-cls="sm"></span>Copy</button>
+        <span class="h-msg" id="h-msg"></span>
+        <button class="pill lg send" id="h-send">Send to Writer<span data-icon="arrow-right" data-cls="sm"></span></button>
+      </div>
+    </section>
+
+    <!-- ============================================================ PRESETS -->
+    <section class="view" id="view-presets">
+      <header class="page-head">
+        <div><h1>Presets</h1><p class="sub">Typing styles for the Writer. Applying one changes speed, mistakes, revisions and pauses.</p></div>
+        <div class="head-actions"><button class="pill primary" id="p-save"><span data-icon="save" data-cls="sm"></span>Save current settings</button></div>
+      </header>
+      <div class="page-scroll"><div class="preset-grid" id="preset-grid"></div></div>
+    </section>
+
+    <!-- ============================================================ MY STYLE -->
+    <section class="view" id="view-style">
+      <header class="page-head">
+        <div><h1>My style</h1><p class="sub">Paste something you wrote yourself. The Humanizer measures your habits and follows them.</p></div>
+        <div class="head-actions"><button class="pill primary" id="st-new"><span data-icon="plus" data-cls="sm"></span>New style</button></div>
+      </header>
+      <div class="style-grid">
+        <div class="style-list" id="style-list" aria-label="Saved styles"></div>
+        <div class="card style-editor" id="style-editor">
+          <div class="card-title"><h3 id="se-title">New style</h3>
+            <div class="actions"><button class="chip" id="se-paste"><span data-icon="clipboard-paste" data-cls="sm"></span>Paste</button></div></div>
+          <label class="row-label" for="se-name">Name</label>
+          <input class="input wide" id="se-name" placeholder="e.g. My essays, Texting me, Work emails" autocomplete="off">
+          <label class="row-label se-label" for="se-text">Your writing</label>
+          <textarea class="editor" id="se-text" spellcheck="false" placeholder="Paste a few paragraphs you wrote yourself, not AI text. The more natural and typical of you, the better (at least 60 words, ideally 200+)."></textarea>
+          <div class="se-meter"><span class="bar"><i id="se-meter"></i></span><span class="muted num" id="se-words">0 words</span></div>
+          <div class="row-label se-label">What Cadence notices</div>
+          <div class="presets se-traits" id="se-traits"><span class="muted">Start typing or paste to see your habits.</span></div>
+          <div class="se-actions">
+            <button class="pill" id="se-delete" hidden><span data-icon="trash-2" data-cls="sm"></span>Delete</button>
+            <span class="flex"></span>
+            <button class="pill" id="se-use" hidden><span data-icon="circle-check" data-cls="sm"></span>Use in Humanizer</button>
+            <button class="pill primary" id="se-save"><span data-icon="save" data-cls="sm"></span>Save style</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ SETTINGS -->
+    <section class="view" id="view-settings">
+      <header class="page-head">
+        <div><h1>Settings</h1><p class="sub">Local engines, hotkeys and where Cadence keeps its files.</p></div>
+      </header>
+      <div class="page-scroll"><div class="settings-grid" id="settings-grid"></div></div>
+    </section>
+  </main>
+</div>
+<div class="mini-host hidden" id="mini-host"></div>
+<script src="js/common.js"></script>
+<script src="js/mini.js"></script>
+<script src="js/writer.js"></script>
+<script src="js/humanizer.js"></script>
+<script src="js/style.js"></script>
+<script src="js/preview-model.js"></script>
+<script src="js/preview.js"></script>
+<script src="js/extras.js"></script>
+<script src="js/distribution.js"></script>
+<script src="js/pages.js"></script>
+</body>
+</html>
